@@ -59,7 +59,7 @@ class UserRepo(Repository[User]):
                 await self.session.commit()
         return True
 
-    async def delete_role(self, user_id: int) -> bool:
+    async def remove_role(self, user_id: int) -> bool:
         if not user_id == conf.admin.admin_id:
             user = await self.get_by_user_id(user_id=user_id)
             user.role = Role.USER

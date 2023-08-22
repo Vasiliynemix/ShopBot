@@ -23,7 +23,7 @@ async def list_moderators_handler(message: Message, db: Database):
 
 @router.callback_query(CallBackAdminListFilter.filter(), AdminFilter())
 async def delete_moderator_handler(call: CallbackQuery, db: Database):
-    await db.user.delete_role(user_id=int(call.data[10:]))
+    await db.user.remove_role(user_id=int(call.data[10:]))
     await call.answer()
     moderators = await db.user.get_by_role()
     await call.message.edit_text(
