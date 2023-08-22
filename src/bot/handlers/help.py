@@ -8,18 +8,18 @@ router = Router()
 
 
 @router.message(Command(commands=['help']), AdminFilter())
-async def start_handler(message: types.Message):
+async def help_handler_admin(message: types.Message):
     text = COMMAND_HELP['help_admin']
     return await message.answer(text=text)
 
 
 @router.message(Command(commands=['help']), ModeratorFilter())
-async def start_handler(message: types.Message):
+async def help_handler_moder(message: types.Message):
     text = COMMAND_HELP['help_moderator']
     return await message.answer(text=text)
 
 
 @router.message(Command(commands=['help']))
-async def start_handler(message: types.Message):
+async def help_handler_user(message: types.Message):
     text = COMMAND_HELP['help_user']
     return await message.answer(text=text)
