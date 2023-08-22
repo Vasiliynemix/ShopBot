@@ -13,7 +13,7 @@ from src.db.database import create_async_engine
 
 
 async def start_bot():
-    bot = Bot(token=conf.bot.token)
+    bot = Bot(token=conf.bot.token, parse_mode='HTML')
 
     await set_main_menu(bot=bot)
 
@@ -38,8 +38,11 @@ async def start_bot():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(
-        level=conf.logging_level,
-        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-    )
-    asyncio.run(start_bot())
+    try:
+        logging.basicConfig(
+            level=conf.logging_level,
+            format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+        )
+        asyncio.run(start_bot())
+    except (KeyboardInterrupt, SystemExit):
+        logging.error("Bot stopped!")
