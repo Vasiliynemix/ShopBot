@@ -1,13 +1,13 @@
 from aiogram import Bot
 from aiogram.types import BotCommand
 
-from src.bot.structures.role import Role
+from src.bot.structures.lexicon.lexicon_ru import LEXICON_COMMANDS
 
 
-async def set_main_menu(bot: Bot, menu: dict[str, str]):
+async def set_main_menu(bot: Bot):
     main_menu_commands = [BotCommand(
         command=command,
         description=description
-    ) for command, description in menu.items()]
+    ) for command, description in LEXICON_COMMANDS.items()]
 
     await bot.set_my_commands(main_menu_commands)
