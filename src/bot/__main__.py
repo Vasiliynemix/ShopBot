@@ -5,24 +5,26 @@ import logging
 from aiogram import Bot
 from redis.asyncio.client import Redis
 
-from src.bot.dispatcher import get_dispatcher
+from src.bot.dispatcher import get_dispatcher, get_redis_storage
 from src.bot.structures.data_structure import TransferData
+from src.bot.structures.keyboards.main_menu import set_main_menu
 from src.configuration import conf
 from src.db.database import create_async_engine
 
 
 async def start_bot():
     bot = Bot(token=conf.bot.token)
-    # storage = get_redis_storage(
-    #     redis=Redis(
-    #         db=conf.redis.db,
-    #         host=conf.redis.host,
-    #         password=conf.redis.passwd,
-    #         username=conf.redis.username,
-    #         port=conf.redis.port,
-    #     )
-    # )
-    dp = get_dispatcher()
+
+    storage = get_redis_storage(
+        redis=Redis(
+            db=conf.redis.db,
+            host=conf.redis.host,
+            password=conf.redis.passwd,
+            username=conf.redis.username,
+            port=conf.redis.port,
+        )
+    )
+    dp = get_dispatcher(storage=storage)
 
     await dp.start_polling(
         bot,
