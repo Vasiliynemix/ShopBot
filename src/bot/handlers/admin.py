@@ -5,7 +5,8 @@ from aiogram.types import Message, CallbackQuery
 
 from src.bot.filters.admin import CallBackAdminListFilter
 from src.bot.filters.register_filter import AdminFilter
-from src.bot.structures.keyboards.admin_kb import get_moderators_ikb, create_main_kb
+from src.bot.structures.keyboards.admin_kb import get_moderators_ikb
+from src.bot.structures.keyboards.user_kb import create_main_user_kb
 from src.bot.structures.state.admin import AdminFSM
 from src.db.database import Database
 
@@ -52,4 +53,6 @@ async def get_id_new_moderator_handler(message: Message, db: Database, state: FS
 
 @router.callback_query(F.data == 'start_menu', AdminFilter())
 async def basic_menu_handler(call: CallbackQuery):
-    await call.message.edit_text('Меню', reply_markup=await create_main_kb())
+    await call.message.delete_reply_markup()
+    await call.answer()
+    await call.message.answer('Меню', reply_markup=await create_main_user_kb())

@@ -1,5 +1,3 @@
-import stat
-
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -7,7 +5,8 @@ from aiogram.types import Message, CallbackQuery
 
 from src.bot.filters.admin import CallBackCategoriesListFilter
 from src.bot.filters.register_filter import ModeratorFilter
-from src.bot.structures.keyboards.admin_kb import add_product_in_db, create_main_kb, get_categories_ikb
+from src.bot.structures.keyboards.admin_kb import add_product_in_db, get_categories_ikb
+from src.bot.structures.keyboards.user_kb import create_main_user_kb
 from src.bot.structures.state.moderator import AddProduct, AddCategory
 from src.db.database import Database
 
@@ -103,6 +102,7 @@ async def update_add_product(call: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == 'product_cancel', AddProduct.result, ModeratorFilter())
 async def cancel_add_product(call: CallbackQuery, state: FSMContext):
+    await call.message.delete_reply_markup()
     await call.answer()
     await state.clear()
-    await call.message.edit_text('Меню', reply_markup=await create_main_kb())
+    await call.message.answer('Меню', reply_markup=await create_main_user_kb())

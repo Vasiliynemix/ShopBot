@@ -1,17 +1,8 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.bot.filters.admin import CallBackAdminListFilter, CallBackCategoriesListFilter
 from src.db.models import User, Category
-
-
-async def create_main_kb() -> InlineKeyboardMarkup:
-    ikb = InlineKeyboardBuilder()
-    ikb.row(InlineKeyboardButton(
-        text='test',
-        callback_data='test'
-    ))
-    return ikb.as_markup()
 
 
 async def get_moderators_ikb(moderators: list[User]):
