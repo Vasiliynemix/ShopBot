@@ -1,5 +1,5 @@
 import sqlalchemy as sa
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from src.bot.structures.role import Role
 from src.db.models import Base

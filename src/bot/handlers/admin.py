@@ -52,4 +52,4 @@ async def get_id_new_moderator_handler(message: Message, db: Database, state: FS
 
 @router.callback_query(F.data == 'start_menu', AdminFilter())
 async def basic_menu_handler(call: CallbackQuery):
-    await call.message.edit_text('Меню', reply_markup=create_main_kb())
+    await call.message.edit_text('Меню', reply_markup=await create_main_kb())
