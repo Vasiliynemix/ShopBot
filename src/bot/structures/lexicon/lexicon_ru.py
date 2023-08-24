@@ -21,3 +21,14 @@ COMMAND_HELP: dict[str, str] = {
 LEXICON_COMMANDS: dict[str, str] = {
     '/help': 'Помощь работы с ботом',
 }
+
+
+async def create_text_product(name, description, price, category):
+    text = (
+        f'название: {name}\n'
+        f'описание: {description}\n'
+        f'цена: {price}\n'
+        f'категория: {category}'
+    )
+
+    return text

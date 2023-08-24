@@ -7,7 +7,7 @@ from src.bot.filters.admin import CallBackAdminListFilter
 from src.bot.filters.register_filter import AdminFilter
 from src.bot.structures.keyboards.admin_kb import get_moderators_ikb
 from src.bot.structures.keyboards.user_kb import create_main_user_kb
-from src.bot.structures.state.admin import AdminFSM
+from src.bot.structures.states.admin import AdminFSM
 from src.db.database import Database
 
 router = Router()

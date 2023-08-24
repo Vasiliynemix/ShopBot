@@ -6,6 +6,7 @@ class AddProduct(StatesGroup):
     description = State()
     price = State()
     category = State()
+    image = State()
     result = State()
 
 

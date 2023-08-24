@@ -1,6 +1,7 @@
 from typing import TypedDict
 
 from aiogram import Bot
+from aiogram.fsm.storage.redis import RedisStorage
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from src.bot.structures.role import Role
@@ -13,3 +14,4 @@ class TransferData(TypedDict):
     db: Database
     bot: Bot
     user: User
+    storage: RedisStorage

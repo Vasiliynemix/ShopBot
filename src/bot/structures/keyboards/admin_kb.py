@@ -1,5 +1,5 @@
-from aiogram.types import InlineKeyboardMarkup
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
 from src.bot.filters.admin import CallBackAdminListFilter, CallBackCategoriesListFilter
 from src.db.models import User, Category
@@ -41,4 +41,19 @@ async def add_product_in_db() -> InlineKeyboardMarkup:
     ikb.button(text='Отменить публикацию ❌', callback_data='product_cancel')
     ikb.adjust(1)
 
-    return ikb.as_markup(resize_keyboard=True)
+    return ikb.as_markup(
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+
+
+async def save_images_in_static() -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardBuilder()
+    kb.button(text='Продолжить ✅')
+    kb.adjust(1)
+
+    return kb.as_markup(
+        resize_keyboard=True,
+        one_time_keyboard=True,
+        input_field_placeholder='Нажмите кнопку ниже, когда добавите все картинки 👇',
+    )

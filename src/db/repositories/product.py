@@ -19,4 +19,4 @@ class ProductRepo(Repository[Product]):
             name=name, description=description, price=price, category=Category(category_name=category))
         )
         await self.session.commit()
-        return new_product
+        return new_product.id
