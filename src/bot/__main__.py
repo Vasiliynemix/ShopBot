@@ -1,4 +1,3 @@
-"""This file represent startup bot logic."""
 import asyncio
 import logging
 

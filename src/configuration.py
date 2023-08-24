@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 
 from sqlalchemy.engine import URL
 
+from src.bot.common.images import Static
+
 load_dotenv()
 
 
