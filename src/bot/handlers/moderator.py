@@ -54,12 +54,13 @@ async def add_price_product(message: Message, state: FSMContext, db: Database):
     )
 # Цена товара ============================================================================
 
+
 # Категория товара =======================================================================
 @router.callback_query(AddProduct.category, ModeratorFilter(), CallBackCategoriesListFilter.filter())
 async def add_category_product(call: CallbackQuery, state: FSMContext):
     await state.update_data(category=call.data[9:])
     await state.set_state(AddProduct.image)
-
+    await call.answer()
     await call.message.answer(
         'Добавьте изображения товара(без ограничений)\n'
         'После того, как добавите все изображения нажмите на кнопку "Продолжить ✅" ниже'
@@ -110,7 +111,7 @@ async def test(message: Message, bot: Bot, state: FSMContext, storage: RedisStor
         storage=storage,
         is_test=True,
     )
-    await bot.send_media_group(chat_id=message.from_user.id, media=images)
+    # await bot.send_media_group(chat_id=message.from_user.id, media=images)
     await message.answer(
         text=text,
         reply_markup=await add_product_in_db()
@@ -135,15 +136,16 @@ async def publish_product(
         price=float(data['price']),
         category=data['category'],
     )
-    category_id = await db.category.get_one_category(category_name=data['category'])
+    category_name = await db.category.get_one_category(category_name=data['category'])
     await static.save_images(
-        call=call,
+        message=call,
         bot=bot,
         storage=storage,
-        category_id=category_id,
+        category_name=category_name,
         product_id=product_id
     )
     await state.clear()
+    await static.public_images(category_name=category_name, product_id=product_id)
     await call.message.edit_text('Опубликовано')
 # Публикация товара ======================================================================
 

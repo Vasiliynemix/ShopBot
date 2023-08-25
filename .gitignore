@@ -123,3 +123,5 @@ venv.bak/v
 .mypy_cache/
 .dmypy.json
 dmypy.jsona
+
+.client_secret_key.json

@@ -23,7 +23,7 @@ class CategoryRepo(Repository[Category]):
         return await self.session.scalars(select(Category).distinct(Category.category_name))
 
     async def get_one_category(self, category_name: str) -> int:
-        category_id = await self.session.scalar(
-            select(Category.id).where(Category.category_name == category_name).limit(1)
+        category_name = await self.session.scalar(
+            select(Category.category_name).where(Category.category_name == category_name).limit(1)
         )
-        return category_id
+        return category_name

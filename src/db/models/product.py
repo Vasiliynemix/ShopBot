@@ -5,7 +5,7 @@ from src.db.models import Base
 
 
 class Product(Base):
-    name: Mapped[str]
+    name: Mapped[str] = mapped_column(unique=True, nullable=False)
     description: Mapped[str]
     price: Mapped[float]
     category: Mapped['Category'] = relationship(back_populates='products', uselist=False)

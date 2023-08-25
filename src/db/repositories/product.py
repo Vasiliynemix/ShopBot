@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.models import Product, Category
@@ -15,8 +16,15 @@ class ProductRepo(Repository[Product]):
             price: float,
             category: Category
     ) -> Product:
-        new_product = await self.session.merge(Product(
+        await self.session.merge(Product(
             name=name, description=description, price=price, category=Category(category_name=category))
         )
         await self.session.commit()
-        return new_product.id
+        product_id = await self.__get_product_by_name(name=name)
+        return product_id
+
+    async def __get_product_by_name(self, name: str):
+        product_id = await self.session.scalar(
+            select(Product.id).where(Product.name == name).limit(1)
+        )
+        return product_id
