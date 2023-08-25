@@ -1,12 +1,18 @@
-from aiogram.types import ReplyKeyboardMarkup
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+
+from src.bot.structures.role import Role
+from src.db.models import User
 
 
-async def create_main_user_kb() -> ReplyKeyboardMarkup:
-    from aiogram.utils.keyboard import ReplyKeyboardBuilder
-    kb = ReplyKeyboardBuilder()
-    kb.button(text='Меню')
-    kb.button(text='Корзина')
-    kb.button(text='Помощь')
-    kb.button(text='Поддержка')
-    kb.adjust(2)
-    return kb.as_markup(resize_keyboard=True)
+async def create_main_user_kb(user: User) -> ReplyKeyboardMarkup:
+    start_kb = [
+        [KeyboardButton(text='Меню'), KeyboardButton(text='Корзина')],
+        [KeyboardButton(text='Помощь'), KeyboardButton(text='Поддержка')],
+    ]
+    if user.role == Role.ADMINISTRATOR or user.role == Role.MODERATOR:
+        start_kb.append([KeyboardButton(text='Админ-панель')])
+    return ReplyKeyboardMarkup(keyboard=start_kb,
+                               resize_keyboard=True,
+                               input_field_placeholder='Выберите один из вариантов👇',
+                               one_time_keyboard=True)
+

@@ -1,6 +1,10 @@
 from aiogram.fsm.state import StatesGroup, State
 
 
+class Moderator(StatesGroup):
+    start = State()
+
+
 class AddProduct(StatesGroup):
     name = State()
     description = State()

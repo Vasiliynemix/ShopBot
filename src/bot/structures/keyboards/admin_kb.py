@@ -5,6 +5,17 @@ from src.bot.filters.admin import CallBackAdminListFilter, CallBackCategoriesLis
 from src.db.models import User, Category
 
 
+async def start_admin_kb():
+    ikb = InlineKeyboardBuilder()
+    ikb.button(text='Добавить товар на продажу ✅', callback_data='add_product_in_db')
+    ikb.adjust(1)
+
+    return ikb.as_markup(
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+
+
 async def get_moderators_ikb(moderators: list[User]):
     ikb = InlineKeyboardBuilder()
     for moderator in moderators:

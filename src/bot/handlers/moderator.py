@@ -7,20 +7,31 @@ from aiogram.types import Message, CallbackQuery
 from src.bot.common.images import static
 from src.bot.filters.admin import CallBackCategoriesListFilter
 from src.bot.filters.register_filter import ModeratorFilter
-from src.bot.structures.keyboards.admin_kb import add_product_in_db, get_categories_ikb, save_images_in_static
+from src.bot.structures.keyboards.admin_kb import add_product_in_db, get_categories_ikb, save_images_in_static, \
+    start_admin_kb
 from src.bot.structures.keyboards.user_kb import create_main_user_kb
 from src.bot.structures.lexicon.lexicon_ru import create_text_product
-from src.bot.structures.states.moderator import AddProduct, AddCategory
+from src.bot.structures.states.moderator import AddProduct, AddCategory, Moderator
 from src.db.database import Database
 
 router = Router()
 
 
-# Старт добавления товара ================================================================
+# Админ панель ===========================================================================
+@router.message(F.text == 'Админ-панель', ModeratorFilter())
 @router.message(Command(commands=['admin']), ModeratorFilter())
-async def start_added_product(message: Message, state: FSMContext):
+async def start_admin_panel(message: Message, state: FSMContext):
+    await state.set_state(Moderator.start)
+    await message.answer('Выберите из списка что хотите сделать', reply_markup=await start_admin_kb())
+# Админ панель ===========================================================================
+
+
+# Старт добавления товара ================================================================
+@router.callback_query(Moderator.start, F.data == 'add_product_in_db', ModeratorFilter())
+async def start_added_product(call: CallbackQuery, state: FSMContext):
+    await call.answer()
     await state.set_state(AddProduct.name)
-    await message.answer('Введите название товара')
+    await call.message.answer('Введите название товара')
 # Старт добавления товара ================================================================
 
 
@@ -38,7 +49,7 @@ async def add_name_product(message: Message, state: FSMContext):
 async def add_description_product(message: Message, state: FSMContext):
     await state.update_data(description=message.text)
     await state.set_state(AddProduct.price)
-    await message.answer('Введите цену товара')
+    await message.answer('Введите цену товара(число)')
 # Описание товара ========================================================================
 
 
