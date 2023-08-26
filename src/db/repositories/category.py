@@ -1,7 +1,9 @@
+from typing import List
+
 from sqlalchemy import select, ScalarResult
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.db.models import Category
+from src.db.models import Category, Product
 from src.db.repositories.abstract import Repository
 
 
@@ -27,3 +29,9 @@ class CategoryRepo(Repository[Category]):
             select(Category.category_name).where(Category.category_name == category_name).limit(1)
         )
         return category_name
+
+    async def get_product_id(self, category_name: str):
+        product_ids = await self.session.scalars(
+            select(Category.product_fk).where(Category.category_name == category_name)
+        )
+        return product_ids.all()

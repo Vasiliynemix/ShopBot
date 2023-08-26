@@ -23,12 +23,19 @@ LEXICON_COMMANDS: dict[str, str] = {
 }
 
 
-async def create_text_product(name, description, price, category):
-    text = (
-        f'название: {name}\n'
-        f'описание: {description}\n'
-        f'цена: {price}\n'
-        f'категория: {category}'
-    )
+async def create_text_product(name, description, price, category=None):
+    if category:
+        text = (
+            f'название: {name}\n'
+            f'описание: {description}\n'
+            f'цена: {price}\n'
+            f'категория: {category}'
+        )
+    else:
+        text = (
+            f'название: {name}\n'
+            f'описание: {description}\n'
+            f'цена: {price}\n'
+        )
 
     return text

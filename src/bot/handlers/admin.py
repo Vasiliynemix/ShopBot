@@ -16,7 +16,7 @@ router = Router()
 
 @router.message(Command(commands=['moderators']), AdminFilter())
 async def list_moderators_handler(message: Message, db: Database):
-    moderators = await db.user.get_by_role()
+    moderators = await db.user.get_admin_users()
     await message.answer(
         'Список модераторов и админов группы\nДля того, чтобы удалить модератора нажмите на соответствующую кнопку',
         reply_markup=await get_moderators_ikb(moderators=moderators)
@@ -27,7 +27,7 @@ async def list_moderators_handler(message: Message, db: Database):
 async def delete_moderator_handler(call: CallbackQuery, db: Database):
     await db.user.remove_role(user_id=int(call.data[10:]))
     await call.answer()
-    moderators = await db.user.get_by_role()
+    moderators = await db.user.get_admin_users()
     await call.message.edit_text(
         'Список модераторов и админов группы\nДля того, чтобы удалить модератора нажмите на соответствующую кнопку',
         reply_markup=await get_moderators_ikb(moderators=moderators)
@@ -45,7 +45,7 @@ async def new_moderator_handler(call: CallbackQuery, state: FSMContext):
 async def get_id_new_moderator_handler(message: Message, db: Database, state: FSMContext):
     await state.clear()
     await db.user.update_role(user_id=int(message.text), message=message)
-    moderators = await db.user.get_by_role()
+    moderators = await db.user.get_admin_users()
     await message.answer(
         'Список модераторов и админов группы\nДля того, чтобы удалить модератора нажмите на соответствующую кнопку',
         reply_markup=await get_moderators_ikb(moderators=moderators)

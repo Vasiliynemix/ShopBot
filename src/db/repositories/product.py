@@ -28,3 +28,9 @@ class ProductRepo(Repository[Product]):
             select(Product.id).where(Product.name == name).limit(1)
         )
         return product_id
+
+    async def get_products(self, category_name: str):
+        products = await self.session.scalars(
+            select(Product).where(Product.category.has(category_name=category_name))
+        )
+        return products.all()

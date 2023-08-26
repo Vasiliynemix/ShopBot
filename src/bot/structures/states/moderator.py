@@ -14,5 +14,9 @@ class AddProduct(StatesGroup):
     result = State()
 
 
+class UpdateProduct(StatesGroup):
+    update = State()
+
+
 class AddCategory(StatesGroup):
     new_category = State()

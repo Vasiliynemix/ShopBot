@@ -1,7 +1,9 @@
 from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
-from src.bot.filters.admin import CallBackAdminListFilter, CallBackCategoriesListFilter
+from src.bot.filters.admin import CallBackAdminListFilter
+from src.bot.filters.user import CallBackCategoriesListFilter
+from src.bot.structures.role import Role
 from src.db.models import User, Category
 
 
@@ -31,7 +33,7 @@ async def get_moderators_ikb(moderators: list[User]):
     return ikb.as_markup(resize_keyboard=True)
 
 
-async def get_categories_ikb(categories: list[Category] | None):
+async def get_categories_ikb(categories: list[Category] | None, is_admin_mode: bool = False):
     ikb = InlineKeyboardBuilder()
     if categories is not None:
         for category in categories:
@@ -39,9 +41,9 @@ async def get_categories_ikb(categories: list[Category] | None):
                 text=category.category_name,
                 callback_data=CallBackCategoriesListFilter(category_name=category.category_name)
             )
-    ikb.button(text='Добавить нужную категорию ✅', callback_data='add_category')
+    if is_admin_mode:
+        ikb.button(text='Добавить нужную категорию ✅', callback_data='add_category')
     ikb.adjust(1)
-
     return ikb.as_markup(resize_keyboard=True)
 
 

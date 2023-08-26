@@ -37,7 +37,7 @@ class UserRepo(Repository[User]):
     async def get_by_user_id(self, user_id: int):
         return await self.session.scalar(select(User).where(User.user_id == user_id).limit(1))
 
-    async def get_by_role(self):
+    async def get_admin_users(self):
         moderators = await self.session.scalars(
             select(User).filter(
                 or_(

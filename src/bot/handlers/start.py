@@ -1,5 +1,6 @@
 from aiogram import Router, types
 from aiogram.filters import CommandStart
+from aiogram.fsm.context import FSMContext
 
 from src.bot.filters.register_filter import RegisterFilter, AdminFilter, ModeratorFilter
 from src.bot.middlewares.user import UserMiddleware

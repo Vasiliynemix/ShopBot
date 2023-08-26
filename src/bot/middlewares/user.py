@@ -18,5 +18,4 @@ class UserMiddleware(BaseMiddleware):
     ) -> Any:
         db: Database = data['db']
         data['user'] = await db.user.get_by_user_id(event.from_user.id)
-        a = 1
         return await handler(event, data)
