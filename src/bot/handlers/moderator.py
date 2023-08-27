@@ -166,7 +166,7 @@ async def add_image_in_redis(message: Message, bot: Bot, state: FSMContext, stor
 @router.callback_query(AddProduct.test_publish, F.data == 'product_test_publish', ModeratorFilter())
 @router.callback_query(UpdateProduct.update, F.data == 'update_result', ModeratorFilter())
 @router.callback_query(F.data == 'cancel_update', UpdateProduct.update, ModeratorFilter())
-async def test(call: CallbackQuery, bot: Bot, state: FSMContext, storage: RedisStorage):
+async def test_public_product(call: CallbackQuery, bot: Bot, state: FSMContext, storage: RedisStorage):
     await call.answer()
     await state.set_state(AddProduct.result)
 
