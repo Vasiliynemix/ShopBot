@@ -1,9 +1,7 @@
-from typing import List
-
 from sqlalchemy import select, ScalarResult
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.db.models import Category, Product
+from src.db.models import Category
 from src.db.repositories.abstract import Repository
 
 

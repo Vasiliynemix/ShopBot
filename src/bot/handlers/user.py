@@ -68,3 +68,8 @@ async def user_menu(call: CallbackQuery, state: FSMContext, db: Database):
             )
         )
 # Список товаров в категории ===========================================================
+
+
+@router.message()
+async def error_message(message: Message):
+    await message.answer('Нет такого варианта!')

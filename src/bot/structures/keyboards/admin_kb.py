@@ -1,10 +1,8 @@
-from aiogram.fsm.context import FSMContext
-from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, CallbackQuery, Message
-from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
+from aiogram.types import InlineKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.bot.filters.admin import CallBackAdminListFilter, CallBackRequestStatusModeratorFilter
 from src.bot.filters.user import CallBackCategoriesListFilter
-from src.bot.structures.role import Role
 from src.db.models import User, Category
 
 
