@@ -52,23 +52,19 @@ async def user_menu(message: Message, state: FSMContext, db: Database):
 
 # Список товаров в категории ===========================================================
 @router.callback_query(CallBackCategoriesListFilter.filter(), UserFSM.catalog)
-async def user_menu(call: CallbackQuery, state: FSMContext, db: Database, bot: Bot):
+async def user_menu(call: CallbackQuery, state: FSMContext, db: Database):
     await call.answer()
+    await call.message.delete()
     category_name = call.data[9:]
     await state.set_state(UserFSM.catalog)
     products = await db.product.get_products(category_name=category_name)
-    media_group = [
-        InputMediaPhoto(media='https://drive.google.com/file/d/1qHd9biv9RtPEg_aTS_WO9BmpXrWUgcL_/view?usp=drive_link'),
-        InputMediaPhoto(media='https://drive.google.com/file/d/1qHd9biv9RtPEg_aTS_WO9BmpXrWUgcL_/view?usp=drive_link')
-    ]
     for product in products:
-        await bot.send_media_group(chat_id=call.from_user.id, media=media_group)
         await call.message.answer(
             text=await create_text_product(
                 name=product.name,
                 description=product.description,
-                price=product.price
-            ),
-            # reply_markup=await get_categories_ikb(categories=products)
+                price=product.price,
+                category=category_name
+            )
         )
 # Список товаров в категории ===========================================================

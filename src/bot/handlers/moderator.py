@@ -103,7 +103,7 @@ async def add_category_product(call: CallbackQuery, state: FSMContext):
     await state.set_state(UpdateProduct.update)
     data = await state.get_data()
 
-    return await call.message.answer(
+    return await call.message.edit_text(
         'Выбери из списка что хочешь изменить',
         reply_markup=await create_update_kb(data=data)
     )
@@ -143,8 +143,17 @@ async def add_image_in_redis(message: Message, bot: Bot, state: FSMContext, stor
 # Проверка товара ========================================================================
 @router.callback_query(AddProduct.test_publish, F.data == 'product_test_publish', ModeratorFilter())
 @router.callback_query(UpdateProduct.update, F.data == 'update_result', ModeratorFilter())
+@router.callback_query(F.data == 'cancel_update', UpdateProduct.update, ModeratorFilter())
 async def test(call: CallbackQuery, bot: Bot, state: FSMContext, storage: RedisStorage):
     await call.answer()
+    await state.set_state(AddProduct.result)
+
+    if call.data == 'cancel_update':
+        return await call.message.edit_text(
+            text='Выберите один из вариантов ниже',
+            reply_markup=await add_product_in_db()
+        )
+
     await call.message.delete()
     data = await state.get_data()
 
@@ -154,13 +163,9 @@ async def test(call: CallbackQuery, bot: Bot, state: FSMContext, storage: RedisS
         price=data['price'],
         category=data['category'],
     )
-
     photo = await static.public_image(message=call, storage=storage, is_test=True)
     await bot.send_photo(chat_id=call.from_user.id, photo=photo, caption=caption)
-
-    await call.message.answer(text='Выберите один из вариантов ниже', reply_markup=await add_product_in_db())
-
-    await state.set_state(AddProduct.result)
+    return await call.message.answer(text='Выберите один из вариантов ниже', reply_markup=await add_product_in_db())
 
 
 # Проверка товара ========================================================================
@@ -353,7 +358,6 @@ async def update_image(call: CallbackQuery, state: FSMContext, storage: RedisSto
 # Отмена публикации товара ===============================================================
 @router.callback_query(F.data == 'product_cancel', AddProduct.result, ModeratorFilter())
 async def cancel_add_product(call: CallbackQuery, state: FSMContext):
-    # await call.message.delete_reply_markup()
     await call.answer()
     await state.clear()
     await state.set_state(Moderator.start)
