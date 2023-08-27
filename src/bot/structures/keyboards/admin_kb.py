@@ -2,7 +2,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, CallbackQuery, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
-from src.bot.filters.admin import CallBackAdminListFilter
+from src.bot.filters.admin import CallBackAdminListFilter, CallBackRequestStatusModeratorFilter
 from src.bot.filters.user import CallBackCategoriesListFilter
 from src.bot.structures.role import Role
 from src.db.models import User, Category
@@ -19,7 +19,7 @@ async def start_admin_kb():
     )
 
 
-async def get_moderators_ikb(moderators: list[User]):
+async def get_moderators_ikb(moderators: list[User]) -> InlineKeyboardMarkup:
     ikb = InlineKeyboardBuilder()
     for moderator in moderators:
         text = f'{moderator.user_id} | {moderator.user_name} | {moderator.role.name} ❌'
@@ -34,11 +34,29 @@ async def get_moderators_ikb(moderators: list[User]):
     return ikb.as_markup(resize_keyboard=True)
 
 
+async def requests_add_status_moderator(user_id: int) -> InlineKeyboardMarkup:
+    ikb = InlineKeyboardBuilder()
+    ikb.button(
+        text='Принять заявку ✅',
+        callback_data=CallBackRequestStatusModeratorFilter(user_id=f'accept_request{user_id}')
+    )
+    ikb.button(
+        text='Отклонить заявку ✅',
+        callback_data=CallBackRequestStatusModeratorFilter(user_id=f'reject_request{user_id}')
+    )
+    ikb.adjust(2)
+
+    return ikb.as_markup(
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+
+
 async def get_categories_ikb(
         categories: list[Category] | None,
         is_admin_mode: bool = False,
         is_update_mode: bool = False
-):
+) -> InlineKeyboardMarkup:
     ikb = InlineKeyboardBuilder()
     if categories is not None:
         for category in categories:

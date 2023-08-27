@@ -3,12 +3,37 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery, InputMediaPhoto
 
 from src.bot.filters.user import CallBackCategoriesListFilter
-from src.bot.structures.keyboards.admin_kb import get_categories_ikb
+from src.bot.structures.keyboards.admin_kb import get_categories_ikb, requests_add_status_moderator
 from src.bot.structures.lexicon.lexicon_ru import create_text_product
 from src.bot.structures.states.user import UserFSM
+from src.configuration import conf
 from src.db.database import Database
 
 router = Router()
+
+
+# Попросить статут модератора =========================================================
+@router.message(F.text == 'Получить модератора 🙇')
+async def request_status_moderator(message: Message, bot: Bot, db: Database):
+    await message.answer('Вам придет сообщение от бота о принятии или отказе вашей заявки\nОжидайте')
+
+    user = await db.user.get_by_user_id(user_id=message.from_user.id)
+
+    a = user.user_id
+    b = user.user_name
+    c = conf.admin.admin_id
+    text = (f'Вам пришла заявка от пользователя\n'
+            f'телеграм id пользователя: {user.user_id}\n'
+            f'телеграм username пользователя: @{user.user_name}')
+
+    await bot.send_message(
+        chat_id=conf.admin.admin_id,
+        text=text,
+        reply_markup=await requests_add_status_moderator(user.user_id)
+    )
+
+
+# Попросить статут модератора =========================================================
 
 
 # Список категорий =====================================================================
@@ -20,6 +45,8 @@ async def user_menu(message: Message, state: FSMContext, db: Database):
         'Выберите категорию из списка',
         reply_markup=await get_categories_ikb(categories=categories)
     )
+
+
 # Список категорий =====================================================================
 
 

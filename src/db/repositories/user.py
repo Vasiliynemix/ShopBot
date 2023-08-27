@@ -48,7 +48,7 @@ class UserRepo(Repository[User]):
         )
         return moderators.all()
 
-    async def update_role(self, user_id: int, message: Message) -> bool:
+    async def update_role(self, user_id: int, message: Message = None) -> bool:
         if not user_id == conf.admin.admin_id:
             user = await self.get_by_user_id(user_id=user_id)
             if user is None:

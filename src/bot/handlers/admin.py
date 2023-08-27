@@ -1,10 +1,13 @@
-from aiogram import Router, F
+import re
+
+from aiogram import Router, F, Bot
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 
-from src.bot.filters.admin import CallBackAdminListFilter
+from src.bot.filters.admin import CallBackAdminListFilter, CallBackRequestStatusModeratorFilter
 from src.bot.filters.register_filter import AdminFilter
+from src.bot.middlewares.user import UserMiddleware
 from src.bot.structures.keyboards.admin_kb import get_moderators_ikb
 from src.bot.structures.keyboards.user_kb import create_main_user_kb
 from src.bot.structures.states.admin import AdminFSM
@@ -12,6 +15,8 @@ from src.db.database import Database
 from src.db.models import User
 
 router = Router()
+
+router.callback_query.middleware(UserMiddleware())
 
 
 @router.message(Command(commands=['moderators']), AdminFilter())
@@ -21,6 +26,19 @@ async def list_moderators_handler(message: Message, db: Database):
         'Список модераторов и админов группы\nДля того, чтобы удалить модератора нажмите на соответствующую кнопку',
         reply_markup=await get_moderators_ikb(moderators=moderators)
     )
+
+
+@router.callback_query(CallBackRequestStatusModeratorFilter.filter(), AdminFilter())
+async def request_status_moderator(call: CallbackQuery, db: Database, bot: Bot):
+    await call.answer()
+    await call.message.delete()
+    pattern = '[0-9]+'
+    user_id = int(re.search(pattern=pattern, string=call.data)[0])
+    if 'accept' in call.data:
+        await db.user.update_role(user_id=user_id)
+        await bot.send_message(chat_id=user_id, text='Ваша заявка на статут модератора одобрена! Пользуйтесь.')
+    else:
+        await bot.send_message(chat_id=user_id, text='Ваша заявка на статут модератора отклонена, извините.')
 
 
 @router.callback_query(CallBackAdminListFilter.filter(), AdminFilter())
@@ -54,6 +72,6 @@ async def get_id_new_moderator_handler(message: Message, db: Database, state: FS
 
 @router.callback_query(F.data == 'start_menu', AdminFilter())
 async def basic_menu_handler(call: CallbackQuery, user: User):
-    await call.message.delete_reply_markup()
     await call.answer()
+    await call.message.delete()
     await call.message.answer('Меню', reply_markup=await create_main_user_kb(user=user))
