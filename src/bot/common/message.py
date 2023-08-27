@@ -12,26 +12,26 @@ class ChangeMessage:
         return await storage.redis.delete(key)
 
     @staticmethod
-    async def __replace_redis_value(value) -> str:
+    async def __replace_value(key: str, storage: RedisStorage) -> str:
+        value = await storage.redis.get(key)
         return str(value).replace("b'", '').replace("'", '')
 
     async def get_value_in_key(self, chat_id: int, storage: RedisStorage):
         key = await self.__redis_key_for_message_id(chat_id=chat_id)
-        return set(await storage.redis.lrange(key, 0, -1))
 
-    async def delete_message(self, chat_id: int, message_ids_list: list[int], bot: Bot, storage: RedisStorage):
+        return await self.__replace_value(key=key, storage=storage)
+
+    async def delete_message(self, chat_id: int, message_id: int, bot: Bot, storage: RedisStorage):
         key = await self.__redis_key_for_message_id(chat_id=chat_id)
-        for message_id in message_ids_list:
-            replace_value = int(await self.__replace_redis_value(value=message_id))
-            await self.delete_redis_key_for_message(key=key, storage=storage)
-            await bot.delete_message(chat_id=chat_id, message_id=replace_value)
+        await self.delete_redis_key_for_message(key=key, storage=storage)
 
-    async def add_message_id_in_redis(self, chat_id: int, message_ids_list: list[int], storage: RedisStorage):
+        return await bot.delete_message(chat_id=chat_id, message_id=message_id)
+
+    async def add_message_id_in_redis(self, chat_id: int, message_id: int, storage: RedisStorage):
         key = await self.__redis_key_for_message_id(chat_id=chat_id)
-        for message_id in message_ids_list:
-            await storage.redis.rpush(key, message_id)
+        await storage.redis.set(key, message_id)
 
-        return set(await storage.redis.lrange(key, 0, -1))
+        return await self.__replace_value(key=key, storage=storage)
 
 
 change_message = ChangeMessage()

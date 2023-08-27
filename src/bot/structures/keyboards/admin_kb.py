@@ -1,4 +1,5 @@
-from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup
+from aiogram.fsm.context import FSMContext
+from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, CallbackQuery, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
 from src.bot.filters.admin import CallBackAdminListFilter
@@ -9,7 +10,7 @@ from src.db.models import User, Category
 
 async def start_admin_kb():
     ikb = InlineKeyboardBuilder()
-    ikb.button(text='Добавить товар на продажу ✅', callback_data='add_product_in_db')
+    ikb.button(text='Добавить товар на продажу ✅', callback_data=f'add_product_in_db')
     ikb.adjust(1)
 
     return ikb.as_markup(
@@ -33,7 +34,11 @@ async def get_moderators_ikb(moderators: list[User]):
     return ikb.as_markup(resize_keyboard=True)
 
 
-async def get_categories_ikb(categories: list[Category] | None, is_admin_mode: bool = False):
+async def get_categories_ikb(
+        categories: list[Category] | None,
+        is_admin_mode: bool = False,
+        is_update_mode: bool = False
+):
     ikb = InlineKeyboardBuilder()
     if categories is not None:
         for category in categories:
@@ -42,16 +47,18 @@ async def get_categories_ikb(categories: list[Category] | None, is_admin_mode: b
                 callback_data=CallBackCategoriesListFilter(category_name=category.category_name)
             )
     if is_admin_mode:
-        ikb.button(text='Добавить нужную категорию ✅', callback_data='add_category')
+        ikb.button(text='Добавить нужную категорию ✅', callback_data=f'add_category')
+    if is_update_mode:
+        ikb.button(text=f'Назад ⬅️', callback_data='cancel_update_value')
     ikb.adjust(1)
     return ikb.as_markup(resize_keyboard=True)
 
 
 async def add_product_in_db() -> InlineKeyboardMarkup:
     ikb = InlineKeyboardBuilder()
-    ikb.button(text='Опубликовать ✅', callback_data='product_publish')
-    ikb.button(text='Изменить какой-то пункт ⬅️', callback_data='product_update')
-    ikb.button(text='Отменить публикацию ❌', callback_data='product_cancel')
+    ikb.button(text='Опубликовать ✅', callback_data=f'product_publish')
+    ikb.button(text='Изменить какой-то пункт ⬅️', callback_data=f'product_update')
+    ikb.button(text='Отменить публикацию ❌', callback_data=f'product_cancel')
     ikb.adjust(1)
 
     return ikb.as_markup(
@@ -60,13 +67,39 @@ async def add_product_in_db() -> InlineKeyboardMarkup:
     )
 
 
-async def save_images_in_static() -> ReplyKeyboardMarkup:
-    kb = ReplyKeyboardBuilder()
-    kb.button(text='Продолжить ✅')
-    kb.adjust(1)
+async def save_images_in_static() -> InlineKeyboardMarkup:
+    ikb = InlineKeyboardBuilder()
+    ikb.button(text='Продолжить ✅', callback_data='product_test_publish')
+    ikb.adjust(1)
 
-    return kb.as_markup(
+    return ikb.as_markup(
         resize_keyboard=True,
         one_time_keyboard=True,
-        input_field_placeholder='Нажмите кнопку ниже, когда добавите все картинки 👇',
+    )
+
+
+async def create_update_kb(data: dict[str]) -> InlineKeyboardMarkup:
+    ikb = InlineKeyboardBuilder()
+    ikb.button(text=f'Категория товара: {data["category"]}', callback_data='update_category')
+    ikb.button(text=f'Название товара: {data["name"]}', callback_data='update_name')
+    ikb.button(text=f'Описание товара: {data["description"]}', callback_data='update_description')
+    ikb.button(text=f'Цена товара: {data["price"]}', callback_data='update_price')
+    ikb.button(text='Изображение товара', callback_data='update_image')
+    ikb.button(text='Посмотреть результат изменений', callback_data='update_result')
+    ikb.button(text='Назад ⬅️', callback_data=f'cancel_update')
+    ikb.adjust(1)
+
+    return ikb.as_markup(
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+
+
+async def create_cancel_update() -> InlineKeyboardMarkup:
+    ikb = InlineKeyboardBuilder()
+    ikb.button(text=f'Назад ⬅️', callback_data=f'cancel_update_value')
+
+    return ikb.as_markup(
+        resize_keyboard=True,
+        one_time_keyboard=True,
     )

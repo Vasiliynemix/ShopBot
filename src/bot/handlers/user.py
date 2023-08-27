@@ -7,7 +7,6 @@ from src.bot.structures.keyboards.admin_kb import get_categories_ikb
 from src.bot.structures.lexicon.lexicon_ru import create_text_product
 from src.bot.structures.states.user import UserFSM
 from src.db.database import Database
-from src.db.models import User
 
 router = Router()
 
