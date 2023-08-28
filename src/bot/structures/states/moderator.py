@@ -7,6 +7,7 @@ class Moderator(StatesGroup):
 
 class AddProduct(StatesGroup):
     name = State()
+    volume = State()
     description = State()
     price = State()
     category = State()
@@ -19,6 +20,7 @@ class UpdateProduct(StatesGroup):
     update = State()
     update_one_value = State()
     update_image = State()
+    update_category = State()
     new_category = State()
 
 

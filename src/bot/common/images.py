@@ -5,6 +5,7 @@ from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.types import Message, CallbackQuery, InputMediaPhoto
 
 from src.bot.structures.lexicon.lexicon_ru import create_text_product
+from src.db.database import Database
 
 
 class Static:
@@ -54,15 +55,11 @@ class Static:
             self,
             message: Message | CallbackQuery,
             storage: RedisStorage,
-            is_test: bool = False
     ):
         key = await self.__redis_key_for_path_images(message=message)
         file_id = await self.__replace_value(key=key, storage=storage)
 
-        if is_test:
-            return file_id
-
-        return await self.delete_redis_key_for_images(message=message, storage=storage)
+        return file_id
 
 
 static = Static()

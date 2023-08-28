@@ -23,12 +23,18 @@ LEXICON_COMMANDS: dict[str, str] = {
 }
 
 
-async def create_text_product(name, description, price, category=None):
+async def create_text_product(name, description, price, volume, category=None):
+    if int(volume) > 0:
+        is_volume = 'да'
+    else:
+        is_volume = 'нет'
+
     if category:
         text = (
             f'название: {name}\n'
             f'описание: {description}\n'
             f'цена: {price}\n'
+            f'в наличии: {is_volume}\n'
             f'категория: {category}'
         )
     else:
@@ -36,6 +42,7 @@ async def create_text_product(name, description, price, category=None):
             f'название: {name}\n'
             f'описание: {description}\n'
             f'цена: {price}\n'
+            f'в наличии: {is_volume}'
         )
 
     return text

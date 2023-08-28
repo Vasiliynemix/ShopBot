@@ -39,6 +39,7 @@ async def request_status_moderator(call: CallbackQuery, db: Database, bot: Bot):
         await bot.send_message(chat_id=user_id, text='Ваша заявка на статут модератора одобрена! Пользуйтесь.')
     else:
         await bot.send_message(chat_id=user_id, text='Ваша заявка на статут модератора отклонена, извините.')
+        await db.user.update_request_status(user_id=user_id)
 
 
 @router.callback_query(CallBackAdminListFilter.filter(), AdminFilter())

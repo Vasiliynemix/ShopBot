@@ -100,6 +100,7 @@ async def create_update_kb(data: dict[str]) -> InlineKeyboardMarkup:
     ikb.button(text=f'Название товара: {data["name"]}', callback_data='update_name')
     ikb.button(text=f'Описание товара: {data["description"]}', callback_data='update_description')
     ikb.button(text=f'Цена товара: {data["price"]}', callback_data='update_price')
+    ikb.button(text=f'Количество товара: {data["volume"]}', callback_data='update_volume')
     ikb.button(text='Изображение товара', callback_data='update_image')
     ikb.button(text='Посмотреть результат изменений', callback_data='update_result')
     ikb.button(text='Назад ⬅️', callback_data=f'cancel_update')

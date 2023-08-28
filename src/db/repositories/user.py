@@ -59,6 +59,12 @@ class UserRepo(Repository[User]):
                 await self.session.commit()
         return True
 
+    async def update_request_status(self, user_id: int) -> bool:
+        user = await self.get_by_user_id(user_id=user_id)
+        user.request_status_moder = 1
+        await self.session.commit()
+        return True
+
     async def remove_role(self, user_id: int) -> bool:
         if not user_id == conf.admin.admin_id:
             user = await self.get_by_user_id(user_id=user_id)

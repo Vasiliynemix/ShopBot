@@ -18,5 +18,6 @@ class User(Base):
     """ Language system Telegram user """
     is_premium: Mapped[bool] = mapped_column(sa.Boolean, unique=False, nullable=False)
     """ Telegram user premium status """
+
     role: Mapped[Role] = mapped_column(sa.Enum(Role), default=Role.USER)
-    """ User's role """
+    request_status_moder: Mapped[int] = mapped_column(nullable=True, default=0)

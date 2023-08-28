@@ -47,15 +47,35 @@ async def start_added_product(call: CallbackQuery, state: FSMContext):
 # название товара ========================================================================
 
 
-# описание товара ========================================================================
+# количество товара на складе ============================================================
 @router.message(AddProduct.name, ModeratorFilter())
-async def add_name_product(message: Message, state: FSMContext):
+async def add_name_product(message: Message, state: FSMContext, db: Database):
+    product_name = await db.product.get_product_name(product_name=message.text)
+
+    if product_name is not None:
+        return await message.answer('Такое имя товара уже используется, введите другое!')
+
     await state.update_data(name=message.text)
-    await state.set_state(AddProduct.description)
-    await message.answer('Введите описание товара')
+    await state.set_state(AddProduct.volume)
+    await message.answer('Введите количество товара на складе на данный момент')
 
 
-# описание товара ========================================================================
+# количество товара на складе ============================================================
+
+
+# описание товара товара ================================================================
+@router.message(AddProduct.volume, ModeratorFilter())
+async def start_added_product(message: Message, state: FSMContext):
+    try:
+        int(message.text)
+        await state.update_data(volume=message.text)
+        await state.set_state(AddProduct.description)
+        await message.answer('Введите описание товара')
+    except ValueError:
+        await message.answer('ВВедите целое число!')
+
+
+# описание товара товара ================================================================
 
 
 # цена товара ===========================================================================
@@ -63,13 +83,12 @@ async def add_name_product(message: Message, state: FSMContext):
 async def add_description_product(message: Message, state: FSMContext):
     await state.update_data(description=message.text)
     await state.set_state(AddProduct.price)
-    await message.answer('Введите цену товара(число)')
-
+    await message.answer('Введите цену товара')
 
 # цена товара ===========================================================================
 
 
-# КАТЕГОРИЯ ТОВАРА ======================================================================
+# КАТЕГОРИЯ ТОВАРА =================================new_category=====================================
 # выбор категории товара ================================================================
 @router.message(AddProduct.price, ModeratorFilter())
 async def add_price_product(message: Message, state: FSMContext, db: Database):
@@ -91,13 +110,17 @@ async def add_price_product(message: Message, state: FSMContext, db: Database):
 
 # Добавление категории товара из базы данных в память бота ===============================
 @router.callback_query(AddProduct.category, ModeratorFilter(), CallBackCategoriesListFilter.filter())
-@router.callback_query(UpdateProduct.update_one_value, ModeratorFilter(), CallBackCategoriesListFilter.filter())
+@router.callback_query(
+    CallBackCategoriesListFilter.filter(),
+    ModeratorFilter(),
+)
 async def add_category_product(call: CallbackQuery, state: FSMContext):
     await state.update_data(category=call.data[9:])
 
     await call.answer()
 
     current_state = await state.get_state()
+
     if current_state == AddProduct.category:
         await state.set_state(AddProduct.image)
         return await call.message.edit_text(
@@ -119,11 +142,13 @@ async def add_category_product(call: CallbackQuery, state: FSMContext):
 
 # Добавление новой категории в память бота ===============================================
 @router.callback_query(F.data == 'add_category', AddProduct.category, ModeratorFilter())
-@router.callback_query(UpdateProduct.update_one_value, ModeratorFilter(), F.data == 'add_category')
+@router.callback_query(UpdateProduct.update_category, ModeratorFilter(), F.data == 'add_category')
 async def add_new_category(call: CallbackQuery, state: FSMContext):
     await call.answer()
 
-    if call.data == AddProduct.category:
+    current_state = await state.get_state()
+
+    if current_state == AddProduct.category:
         await state.set_state(AddCategory.new_category)
     else:
         await state.set_state(UpdateProduct.new_category)
@@ -155,7 +180,7 @@ async def add_new_category_in_db(message: Message, state: FSMContext):
 async def add_image_in_redis(message: Message, bot: Bot, state: FSMContext, storage: RedisStorage):
     await state.set_state(AddProduct.test_publish)
     await static.save_image_in_redis(message=message, bot=bot, storage=storage)
-    await message.answer('изображение добавлено!', reply_markup=await save_images_in_static())
+    return await message.answer('изображение добавлено!', reply_markup=await save_images_in_static())
 
 
 # добавление изображения товара в память бота ============================================
@@ -184,11 +209,12 @@ async def test_public_product(call: CallbackQuery, bot: Bot, state: FSMContext, 
     # текст товара =======================================================================
     caption = await create_text_product(
         name=data['name'],
+        volume=data['volume'],
         description=data['description'],
         price=data['price'],
         category=data['category'],
     )
-    photo = await static.public_image(message=call, storage=storage, is_test=True)
+    photo = await static.public_image(message=call, storage=storage)
     await bot.send_photo(chat_id=call.from_user.id, photo=photo, caption=caption)
     return await call.message.answer(
         text='Выберите один из вариантов ниже',
@@ -214,12 +240,14 @@ async def publish_product(
     await state.clear()
 
     # сохранение в базу данных ===========================================================
-    await static.public_image(message=call, storage=storage)
+    image = await static.get_redis_value(message=call, storage=storage)
     await db.product.new(
         name=data['name'],
         description=data['description'],
         price=float(data['price']),
+        volume=int(data['volume']),
         category=data['category'],
+        image=image
     )
 
     user = await db.user.get_by_user_id(user_id=call.from_user.id)
@@ -247,28 +275,43 @@ async def update_add_product(call: CallbackQuery, state: FSMContext):
 # меню позиций товара ====================================================================
 
 
-# добавление меню обновления товара ======================================================
+# обновления товара ======================================================================
 @router.message(UpdateProduct.update_one_value, ModeratorFilter())
-@router.message(UpdateProduct.update_image, ModeratorFilter(), F.photo)
-async def update_value(message: Message, state: FSMContext, storage: RedisStorage, bot: Bot):
+async def update_value(
+        message: Message,
+        state: FSMContext,
+        storage: RedisStorage,
+        bot: Bot, db: Database
+):
     # получения и обновление нужной позиции товара(update_position) ======================
     update_position = await update_product.get_update_value_in_key(chat_id=message.from_user.id, storage=storage)
     if update_position == 'name':
+        product_name = await db.product.get_product_name(product_name=message.text)
+
+        if product_name is None:
+            return await message.answer('Такое имя товара уже используется, введите другое!')
+
         await state.update_data(name=message.text)
+
     elif update_position == 'description':
         await state.update_data(description=message.text)
+
     elif update_position == 'price':
-        await state.update_data(price=message.text)
-    elif update_position == 'category':
-        await state.update_data(category=message.data[9:])
-    elif update_position == 'image':
-        await static.save_image_in_redis(message=message, bot=bot, storage=storage)
-    else:
-        pass
+        try:
+            float(message.text)
+            await state.update_data(price=message.text)
+        except ValueError:
+            await message.answer('Введите число!')
+
+    elif update_position == 'volume':
+        try:
+            float(message.text)
+            await state.update_data(volume=message.text)
+        except ValueError:
+            await message.answer('Введите целое число!')
     # получения и обновление нужной позиции товара(update_position) ======================
 
     data = await state.get_data()
-    await state.set_state(UpdateProduct.update)
 
     # удаление сообщения ввода нового названия для позиции товара(с кнопкой назад) ======
     message_id_for_delete = await change_message.get_value_in_key(chat_id=message.from_user.id, storage=storage)
@@ -279,13 +322,23 @@ async def update_value(message: Message, state: FSMContext, storage: RedisStorag
         storage=storage
     )
 
-    await message.answer(
+    if update_position == 'image':
+        if message.photo is None:
+            return await message.answer(
+                'Это не фото, добавьте фото пожалуйста',
+                reply_markup=await create_cancel_update()
+            )
+        await static.save_image_in_redis(message=message, bot=bot, storage=storage)
+
+    await state.set_state(UpdateProduct.update)
+
+    return await message.answer(
         'Выбери из списка что хочешь изменить',
         reply_markup=await create_update_kb(data=data)
     )
 
 
-# добавление меню обновления товара ======================================================
+# обновления товара ======================================================================
 
 
 # ПОЗИЦИИ ТОВАРА ДЛЯ ИЗМЕНЕНИЯ ===========================================================
@@ -308,6 +361,7 @@ async def update_add_new_category(message: Message, state: FSMContext):
 
 # возвращение в меню списка позиций товара для обновления ================================
 @router.callback_query(F.data == 'cancel_update_value', UpdateProduct.update_one_value, ModeratorFilter())
+@router.callback_query(F.data == 'cancel_update_value', UpdateProduct.update_category, ModeratorFilter())
 async def cancel_update_value(call: CallbackQuery, state: FSMContext, storage: RedisStorage):
     data = await state.get_data()
 
@@ -336,7 +390,7 @@ async def update_category(call: CallbackQuery, state: FSMContext, storage: Redis
 
     categories = await db.category.get_categories()
 
-    await state.set_state(UpdateProduct.update_one_value)
+    await state.set_state(UpdateProduct.update_category)
     await call.message.edit_text(
         'Выберите новую категорию товара, добавьте новую категорию или отмените изменение позиции товара',
         reply_markup=await get_categories_ikb(
@@ -350,10 +404,12 @@ async def update_category(call: CallbackQuery, state: FSMContext, storage: Redis
 # Изменить категорию товара =============================================================
 
 
-# Изменение имени | описания | цены | товара ============================================
+# Изменение имени | описания | цены | изображения товара =================================
 @router.callback_query(F.data == 'update_name', UpdateProduct.update, ModeratorFilter())
 @router.callback_query(F.data == 'update_description', UpdateProduct.update, ModeratorFilter())
 @router.callback_query(F.data == 'update_price', UpdateProduct.update, ModeratorFilter())
+@router.callback_query(F.data == 'update_image', UpdateProduct.update, ModeratorFilter())
+@router.callback_query(F.data == 'update_volume', UpdateProduct.update, ModeratorFilter())
 async def update_description(call: CallbackQuery, state: FSMContext, storage: RedisStorage):
     await call.answer()
 
@@ -369,36 +425,19 @@ async def update_description(call: CallbackQuery, state: FSMContext, storage: Re
     await update_product.add_update_value(chat_id=call.from_user.id, storage=storage, value=call.data)
 
     await state.set_state(UpdateProduct.update_one_value)
-    await call.message.edit_text(
+    if call.data == 'update_image':
+        return await call.message.edit_text(
+            'Добавьте новое изображение для товара или нажмите назад для возвращение в прошлое меню',
+            reply_markup=await create_cancel_update()
+        )
+
+    return await call.message.edit_text(
         'Введите новое название выбранной позиции товара или нажмите назад для возвращение в прошлое меню',
         reply_markup=await create_cancel_update()
     )
 
 
-# Изменение имени | описания | цены | товара ============================================
-
-
-# Изменение картинку товара ==============================================================
-@router.callback_query(F.data == 'update_image', UpdateProduct.update, ModeratorFilter())
-async def update_image(call: CallbackQuery, state: FSMContext, storage: RedisStorage):
-    await call.answer()
-
-    # добавления ид сообщения для ввода новой позиции товара(с кнопкой назад) ============
-    message_id = call.message.message_id
-    await change_message.add_message_id_in_redis(
-        chat_id=call.from_user.id,
-        message_id=message_id,
-        storage=storage
-    )
-
-    await state.set_state(UpdateProduct.update_one_value)
-    await call.message.edit_text(
-        'Отправьте новое изображение товара или нажмите кнопку ниже для отмены изменения позиции товара',
-        reply_markup=await create_cancel_update()
-    )
-
-
-# Изменение картинки товара ==============================================================
+# Изменение имени | описания | цены | изображения товара =================================
 # ПОЗИЦИИ ТОВАРА ДЛЯ ИЗМЕНЕНИЯ ===========================================================
 # ОБНОВЛЕНИЕ ТОВАРА ======================================================================
 

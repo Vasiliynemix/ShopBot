@@ -44,6 +44,13 @@ async def start_handler_moder(message: types.Message, user: User):
 
 @router.message(CommandStart())
 async def start_handler_user(message: types.Message, user: User):
+    if user.request_status_moder == 1:
+        return await message.answer(
+            text=f'Привет, {user.user_name}!\n'
+                 f'Твой id: {message.from_user.id}\n'
+                 f'Вы обычный пользователь\n',
+            reply_markup=await create_main_user_kb(user=user)
+        )
     return await message.answer(
         text=f'Привет, {user.user_name}!\n'
         f'Твой id: {message.from_user.id}\n'
