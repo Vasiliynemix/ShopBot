@@ -36,10 +36,22 @@ async def request_status_moderator(call: CallbackQuery, db: Database, bot: Bot):
     user_id = int(re.search(pattern=pattern, string=call.data)[0])
     if 'accept' in call.data:
         await db.user.update_role(user_id=user_id)
-        await bot.send_message(chat_id=user_id, text='Ваша заявка на статут модератора одобрена! Пользуйтесь.')
+
+        user = await db.user.get_by_user_id(user_id=user_id)
+        await bot.send_message(
+            chat_id=user_id,
+            text='Ваша заявка на статут модератора одобрена! Пользуйтесь.',
+            reply_markup=await create_main_user_kb(user=user)
+        )
     else:
-        await bot.send_message(chat_id=user_id, text='Ваша заявка на статут модератора отклонена, извините.')
         await db.user.update_request_status(user_id=user_id)
+
+        user = await db.user.get_by_user_id(user_id=user_id)
+        await bot.send_message(
+            chat_id=user_id,
+            text='Ваша заявка на статут модератора отклонена, извините.',
+            reply_markup=await create_main_user_kb(user=user)
+        )
 
 
 @router.callback_query(CallBackAdminListFilter.filter(), AdminFilter())
